@@ -8,6 +8,8 @@ set :allow_origin, "*"
 set :allow_methods, "GET,HEAD,OPTIONS,POST"
 set :allow_headers, "content-type"
 
+ADAPTERS = 'json,cypher,gexf'
+
 get '/' do
   main(params)
 end
@@ -18,38 +20,46 @@ post '/' do
   main(data)
 end
 
+def reformat_node(node)
+  node[:type] = node[:label]
+  node.delete(:label)
+  attributes = node.reject { |k, _| [:id, :type].include?(k) }
+  attributes.each { |attr, _| node.delete(attr) }
+  node[:attributes] = attributes
+  node
+end
+
 def main(params)
   code = params.fetch(:code, '')
+  adapters = params.fetch(:format, ADAPTERS).split(',').map(&:strip)
 
-  puts "CODE RECEIVED: #{code.inspect}"
+  puts "----> Code received: #{code.inspect}"
+  puts "----> Adapters: #{adapters.join(', ')}"
 
-  # TODO: Figure out how to get a discourse
-  resp = Aspen.compile_code(code, { adapter: 'json' })
-  graph = JSON.parse(resp).deep_symbolize_keys
-
-  new_nodes = graph[:nodes].map do |node|
-    node[:type] = node[:label]
-    node.delete(:label)
-    attributes = node.reject { |k, _| [:id, :type].include?(k) }
-    attributes.each { |attr, _| node.delete(attr) }
-    node[:attributes] = attributes
-    node
+  # TODO: Figure out how to get a discourse in here
+  compilation = {}.tap do |set|
+    adapters.each do |adapter|
+      puts "ADAPTING TO: #{adapter}"
+      set[adapter.to_sym] = Aspen.compile_code(code, { adapter: adapter })
+      puts "SET: #{set}"
+    end
   end
 
-  new_graph = graph.merge({ nodes: new_nodes })
+  if c = compilation[:json]
+    old = JSON.parse(c).deep_symbolize_keys
+    new_nodes = old[:nodes].map { |node| reformat_node(node) }
+    new_json = old.merge({ nodes: new_nodes })
+    compilation[:json] = new_json
+  end
 
-  return {
-    result: {
-      graph: new_graph,
-      format: 'json'
-    }
-  }.to_json
+  return { type: "success" }.merge!(compilation).to_json
 rescue Aspen::Error => e
   return error_data(e)
 end
 
 def error_data(e)
   {
+    type: "error",
     error: {
       message: e.message,
       type: e.class
