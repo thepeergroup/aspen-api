@@ -46,11 +46,11 @@ def main(params)
     compilation[:json] = new_json
   end
 
-  return { type: "success" }.merge!(compilation).to_json
+  { type: "success" }.merge!(compilation).to_json
 rescue Aspen::Error => e
-  return error_data(e)
+  error_data(e)
 rescue Psych::SyntaxError => e
-  return error_data(e)
+  error_data(e)
 end
 
 def error_data(e)
