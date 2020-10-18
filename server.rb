@@ -48,11 +48,8 @@ def main(params)
 
   return { type: "success" }.merge!(compilation).to_json
 rescue Aspen::Error => e
-  puts e.inspect
-  puts e.backtrace
   return error_data(e)
 rescue Psych::SyntaxError => e
-  puts e.inspect
   return error_data(e)
 end
 
