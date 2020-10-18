@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/beechnut/aspen
-  revision: 2136438b496bfa11b3f28216c60b443a73400c4f
-  ref: 2136438b496bfa11b3f28216c60b443a73400c4f
+  revision: 7119c916682b6caf05d286f84015383ec333f945
+  ref: 7119c916682b6caf05d286f84015383ec333f945
   specs:
     aspen (0.1.0)
       activesupport (~> 6.0)

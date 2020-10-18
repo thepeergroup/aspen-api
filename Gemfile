@@ -3,4 +3,4 @@ source 'https://rubygems.org'
 gem 'sinatra'
 gem 'sinatra-cors'
 
-gem 'aspen', git: "https://github.com/beechnut/aspen", ref: "2136438b496bfa11b3f28216c60b443a73400c4f"
+gem 'aspen', git: "https://github.com/beechnut/aspen", ref: "7119c916682b6caf05d286f84015383ec333f945"
