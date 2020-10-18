@@ -8,7 +8,7 @@ set :allow_origin, "*"
 set :allow_methods, "GET,HEAD,OPTIONS,POST"
 set :allow_headers, "content-type"
 
-ADAPTERS = 'json,cypher,gexf'
+ADAPTERS = Aspen.available_formats.join(',')
 
 get '/' do
   main(params)
@@ -33,15 +33,9 @@ def main(params)
   code = params.fetch(:code, '')
   adapters = params.fetch(:format, ADAPTERS).split(',').map(&:strip)
 
-  puts "----> Code received: #{code.inspect}"
-  puts "----> Adapters: #{adapters.join(', ')}"
-
-  # TODO: Figure out how to get a discourse in here
   compilation = {}.tap do |set|
     adapters.each do |adapter|
-      puts "ADAPTING TO: #{adapter}"
-      set[adapter.to_sym] = Aspen.compile_code(code, { adapter: adapter })
-      puts "SET: #{set}"
+      set[adapter.to_sym] = Aspen.compile_text(code, { adapter: adapter })
     end
   end
 
@@ -54,6 +48,11 @@ def main(params)
 
   return { type: "success" }.merge!(compilation).to_json
 rescue Aspen::Error => e
+  puts e.inspect
+  puts e.backtrace
+  return error_data(e)
+rescue Psych::SyntaxError => e
+  puts e.inspect
   return error_data(e)
 end
 
